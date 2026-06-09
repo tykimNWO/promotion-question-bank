@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --seoul-light: 255, 72, 0;
+  --ink: 20, 20, 18;
+  --paper: 252, 249, 244;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background: rgb(var(--paper));
+}
+
+body {
+  min-height: 100%;
+  color: rgb(var(--ink));
+  background:
+    linear-gradient(90deg, rgba(var(--seoul-light), 0.11) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(20, 20, 18, 0.08) 1px, transparent 1px),
+    rgb(var(--paper));
+  background-size: 26px 26px;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  border-radius: 0;
+}
+
+button {
+  cursor: pointer;
+}
+
+.touch-target {
+  min-height: 44px;
+}
+
+.question-card {
+  box-shadow: 6px 6px 0 rgb(var(--ink));
+}
+
+.signal-frame {
+  border: 2px solid rgb(var(--ink));
+  box-shadow: 10px 10px 0 rgb(var(--ink));
+  background: white;
+}
+
+.rail-title {
+  display: grid;
+  grid-template-columns: 12px 1fr;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.rail-title::before {
+  content: "";
+  background: rgb(var(--seoul-light));
+  border: 2px solid rgb(var(--ink));
+}
+
+@media (max-width: 640px) {
+  body {
+    background-size: 20px 20px;
+  }
+
+  .question-card,
+  .signal-frame {
+    box-shadow: 5px 5px 0 rgb(var(--ink));
+  }
+}
