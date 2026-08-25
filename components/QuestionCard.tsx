@@ -14,7 +14,11 @@ export function QuestionCard({ question, compact }: QuestionCardProps) {
   return (
     <article className="question-card border-2 border-seoul-line bg-white p-4">
       <div className="flex flex-wrap items-center gap-2 text-xs font-black">
-        <span className="bg-seoul-light px-2 py-1 text-white">{question.chapter}</span>
+        <span className="bg-seoul-light px-2 py-1 text-white">{question.subject}</span>
+        <span className="border border-seoul-line px-2 py-1">{question.chapter}</span>
+        <span className="border border-seoul-line px-2 py-1">
+          {question.question_type === "ox" ? "O/X" : "객관식"}
+        </span>
         <span className="border border-seoul-line px-2 py-1">중요도 {question.importance}</span>
         {question.is_wrong ? (
           <span className="border border-seoul-light px-2 py-1 text-seoul-light">오답</span>

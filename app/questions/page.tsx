@@ -3,7 +3,7 @@ import { FilterBar } from "@/components/FilterBar";
 import { QuestionCard } from "@/components/QuestionCard";
 import { SetupNotice } from "@/components/SetupNotice";
 import { parseQuestionFilters } from "@/lib/filter";
-import { listChapters, listQuestions } from "@/lib/questions";
+import { listQuestionTaxonomy, listQuestions } from "@/lib/questions";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +14,10 @@ type QuestionsPageProps = {
 export default async function QuestionsPage({ searchParams }: QuestionsPageProps) {
   const params = (await searchParams) ?? {};
   const filters = parseQuestionFilters(params);
-  const [questions, chapters] = await Promise.all([listQuestions(filters), listChapters()]);
+  const [questions, taxonomy] = await Promise.all([
+    listQuestions(filters),
+    listQuestionTaxonomy()
+  ]);
 
   return (
     <main className="grid gap-5">
@@ -29,7 +32,7 @@ export default async function QuestionsPage({ searchParams }: QuestionsPageProps
         </Link>
       </div>
 
-      <FilterBar chapters={chapters} filters={filters} />
+      <FilterBar taxonomy={taxonomy} filters={filters} />
 
       <div className="grid gap-4">
         {questions.length === 0 ? (

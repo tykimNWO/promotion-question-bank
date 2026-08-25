@@ -22,7 +22,9 @@ export function QuizDeck({ questions }: QuizDeckProps) {
   const options = useMemo(
     () =>
       question
-        ? [question.option_1, question.option_2, question.option_3, question.option_4]
+        ? question.question_type === "ox"
+          ? [question.option_1, question.option_2]
+          : [question.option_1, question.option_2, question.option_3, question.option_4]
         : [],
     [question]
   );
@@ -38,6 +40,12 @@ export function QuizDeck({ questions }: QuizDeckProps) {
 
   const isCorrect = selected === question.answer;
   const isWrong = wrongMap.get(question.id) ?? false;
+  const answerLabel =
+    question.question_type === "ox"
+      ? question.answer === 1
+        ? "O"
+        : "X"
+      : `${question.answer}번`;
 
   function saveWrongState(nextWrong: boolean) {
     setWrongMap((current) => new Map(current).set(question.id, nextWrong));
@@ -67,7 +75,9 @@ export function QuizDeck({ questions }: QuizDeckProps) {
         <span>
           {index + 1} / {questions.length}
         </span>
-        <span className="text-seoul-light">{question.chapter}</span>
+        <span className="text-center text-seoul-light">
+          {question.subject} · {question.chapter}
+        </span>
         <span>중요도 {question.importance}</span>
       </div>
 
@@ -94,12 +104,15 @@ export function QuizDeck({ questions }: QuizDeckProps) {
                 onClick={() => !revealed && setSelected(number)}
                 className={[
                   "touch-target border-2 border-seoul-line p-4 text-left font-bold transition",
+                  question.question_type === "ox" ? "text-center text-3xl" : "",
                   isSelected && !revealed ? "bg-seoul-light text-white shadow-signal" : "bg-white",
                   showCorrect ? "bg-green-600 text-white" : "",
                   showWrongSelected ? "bg-red-600 text-white" : ""
                 ].join(" ")}
               >
-                <span className="mr-3 font-black">{number}</span>
+                {question.question_type === "multiple_choice" ? (
+                  <span className="mr-3 font-black">{number}</span>
+                ) : null}
                 {option}
               </button>
             );
@@ -109,7 +122,9 @@ export function QuizDeck({ questions }: QuizDeckProps) {
         {revealed ? (
           <div className="mt-5 border-2 border-seoul-line bg-seoul-smoke p-4">
             <p className={isCorrect ? "font-black text-green-700" : "font-black text-red-700"}>
-              {isCorrect ? "정답입니다." : `${selected}번은 오답입니다. 정답은 ${question.answer}번입니다.`}
+              {isCorrect
+                ? "정답입니다."
+                : `${question.question_type === "ox" ? (selected === 1 ? "O" : "X") : `${selected}번`}은 오답입니다. 정답은 ${answerLabel}입니다.`}
             </p>
             <p className="mt-3 whitespace-pre-wrap text-sm leading-6">{question.explanation || "해설이 없습니다."}</p>
           </div>

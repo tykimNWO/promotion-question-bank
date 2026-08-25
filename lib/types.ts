@@ -1,6 +1,10 @@
+export type QuestionType = "multiple_choice" | "ox";
+
 export type Question = {
   id: string;
+  subject: string;
   chapter: string;
+  question_type: QuestionType;
   question_text: string;
   option_1: string;
   option_2: string;
@@ -15,7 +19,9 @@ export type Question = {
 };
 
 export type QuestionInput = {
+  subject: string;
   chapter: string;
+  question_type: QuestionType;
   question_text: string;
   option_1: string;
   option_2: string;
@@ -27,7 +33,9 @@ export type QuestionInput = {
 };
 
 export type QuestionFilters = {
+  subject?: string;
   chapter?: string;
+  questionType?: QuestionType;
   wrongOnly?: boolean;
   importance?: 1 | 2 | 3 | 4 | 5;
   search?: string;
@@ -36,10 +44,20 @@ export type QuestionFilters = {
 export type QuestionStats = {
   total: number;
   wrong: number;
-  chapters: Array<{
-    chapter: string;
+  chapterCount: number;
+  subjects: Array<{
+    subject: string;
     count: number;
+    chapters: Array<{
+      chapter: string;
+      count: number;
+    }>;
   }>;
+};
+
+export type SubjectTaxonomy = {
+  subject: string;
+  chapters: string[];
 };
 
 export type Database = {

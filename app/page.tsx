@@ -25,10 +25,11 @@ export default async function HomePage() {
           </div>
         </div>
 
-        <div className="mt-8 grid gap-3 sm:grid-cols-3">
+        <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <Metric label="전체 문제" value={stats.total} />
           <Metric label="오답 문제" value={stats.wrong} accent />
-          <Metric label="단원 수" value={stats.chapters.length} />
+          <Metric label="과목 수" value={stats.subjects.length} />
+          <Metric label="단원 수" value={stats.chapterCount} />
         </div>
 
         <div className="mt-6 grid gap-3 sm:grid-cols-2">
@@ -43,24 +44,39 @@ export default async function HomePage() {
 
       <section className="grid gap-3">
         <div className="flex items-end justify-between">
-          <h2 className="text-xl font-black">단원별 문제 수</h2>
+          <h2 className="text-xl font-black">과목별 단원</h2>
           <Link href="/questions/new" className="border-2 border-seoul-line bg-white px-3 py-2 text-sm font-black">
             새 문제
           </Link>
         </div>
-        {stats.chapters.length === 0 ? (
+        {stats.subjects.length === 0 ? (
           <p className="border-2 border-seoul-line bg-white p-4 font-bold">아직 등록된 문제가 없습니다.</p>
         ) : (
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {stats.chapters.map((chapter) => (
-              <Link
-                key={chapter.chapter}
-                href={`/questions?chapter=${encodeURIComponent(chapter.chapter)}`}
-                className="border-2 border-seoul-line bg-white p-4 font-black"
-              >
-                <span className="block text-seoul-light">{chapter.count}문제</span>
-                <span className="mt-1 block">{chapter.chapter}</span>
-              </Link>
+          <div className="grid gap-4 lg:grid-cols-2">
+            {stats.subjects.map((subject) => (
+              <article key={subject.subject} className="border-2 border-seoul-line bg-white p-4">
+                <div className="flex items-baseline justify-between gap-3 border-b-2 border-seoul-line pb-3">
+                  <h3 className="text-xl font-black">{subject.subject}</h3>
+                  <Link
+                    href={`/questions?subject=${encodeURIComponent(subject.subject)}`}
+                    className="font-black text-seoul-light"
+                  >
+                    {subject.count}문제
+                  </Link>
+                </div>
+                <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                  {subject.chapters.map((chapter) => (
+                    <Link
+                      key={chapter.chapter}
+                      href={`/questions?subject=${encodeURIComponent(subject.subject)}&chapter=${encodeURIComponent(chapter.chapter)}`}
+                      className="flex justify-between gap-3 border border-seoul-line p-3 font-bold"
+                    >
+                      <span>{chapter.chapter}</span>
+                      <span className="text-seoul-light">{chapter.count}</span>
+                    </Link>
+                  ))}
+                </div>
+              </article>
             ))}
           </div>
         )}
