@@ -25,7 +25,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <div className="mx-auto min-h-dvh max-w-6xl px-4 py-4 sm:px-6 lg:px-8">
           <header className="mb-6 flex items-center justify-between border-2 border-seoul-line bg-seoul-ink p-2 text-white">
             <Link href="/" className="px-2 text-sm font-black tracking-[0.18em] sm:text-base">
-              SEOUL STUDY SIGNAL
+              STUDY BANK
             </Link>
             <nav className="flex gap-1 text-xs font-black sm:text-sm">
               <Link href="/quiz" className="touch-target px-3 py-2 hover:bg-seoul-light">

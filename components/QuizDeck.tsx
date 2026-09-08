@@ -1,24 +1,38 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import Link from "next/link";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { setQuestionWrong } from "@/lib/actions";
 import type { Question } from "@/lib/types";
 
 type QuizDeckProps = {
   questions: Question[];
+  wrongOnly?: boolean;
 };
 
-type SyncState = "idle" | "saving" | "saved";
+type SyncState = "idle" | "saving" | "saved" | "error";
 
-export function QuizDeck({ questions }: QuizDeckProps) {
+export function QuizDeck({ questions, wrongOnly = false }: QuizDeckProps) {
+  const [initialQuestions] = useState(questions);
+  const [deck, setDeck] = useState<Question[] | null>(null);
+  const [finished, setFinished] = useState(false);
+  useEffect(() => {
+    const shuffled = [...initialQuestions];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    setDeck(shuffled);
+  }, [initialQuestions]);
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [revealed, setRevealed] = useState(false);
   const [wrongMap, setWrongMap] = useState(() => new Map(questions.map((q) => [q.id, q.is_wrong])));
   const [syncState, setSyncState] = useState<SyncState>("idle");
   const [isPending, startTransition] = useTransition();
+  const pendingWrong = useRef(false);
 
-  const question = questions[index];
+  const question = finished ? undefined : deck?.[index];
   const options = useMemo(
     () =>
       question
@@ -29,16 +43,21 @@ export function QuizDeck({ questions }: QuizDeckProps) {
     [question]
   );
 
+  if (deck === null) return <p className="font-bold">문제를 섞고 있습니다.</p>;
+
   if (!question) {
     return (
       <div className="signal-frame p-6 text-center">
-        <p className="text-xl font-black">풀 문제가 없습니다.</p>
-        <p className="mt-2 text-sm font-bold text-seoul-line/70">문제를 등록하거나 필터를 바꿔주세요.</p>
+        <p className="text-xl font-black">{finished ? "오답을 모두 풀었습니다." : "풀 문제가 없습니다."}</p>
+        <Link href="/wrong-note" className="mt-3 inline-block font-bold text-seoul-light">오답노트로 이동</Link>
+        <p className="mt-2 text-sm font-bold text-seoul-line/70">다른 과목을 선택하거나 문제를 등록해 주세요.</p>
       </div>
     );
   }
 
-  const isCorrect = selected === question.answer;
+  const questionId = question.id;
+  const answer = question.answer;
+  const isCorrect = selected === answer;
   const isWrong = wrongMap.get(question.id) ?? false;
   const answerLabel =
     question.question_type === "ox"
@@ -48,37 +67,50 @@ export function QuizDeck({ questions }: QuizDeckProps) {
       : `${question.answer}번`;
 
   function saveWrongState(nextWrong: boolean) {
-    setWrongMap((current) => new Map(current).set(question.id, nextWrong));
+    pendingWrong.current = nextWrong;
     setSyncState("saving");
     startTransition(async () => {
-      await setQuestionWrong(question.id, nextWrong);
-      setSyncState("saved");
-      window.setTimeout(() => setSyncState("idle"), 900);
+      try {
+        await setQuestionWrong(questionId, nextWrong);
+        setWrongMap((current) => new Map(current).set(questionId, nextWrong));
+        setSyncState("saved");
+      } catch {
+        setSyncState("error");
+      }
     });
   }
 
   function revealAnswer() {
-    if (!selected) return;
+    if (!selected || revealed || isPending) return;
     setRevealed(true);
-    saveWrongState(selected !== question.answer);
+    saveWrongState(selected !== answer);
   }
 
   function nextQuestion() {
+    if (isPending || syncState === "error") return;
+    if (wrongOnly) {
+      const next = Array.from({ length: deck!.length }, (_, offset) => (index + offset + 1) % deck!.length)
+        .find(candidate => wrongMap.get(deck![candidate].id));
+      if (next === undefined) { setFinished(true); return; }
+      setIndex(next);
+    } else {
+      setIndex((current) => (current + 1) % deck!.length);
+    }
     setSelected(null);
     setRevealed(false);
-    setIndex((current) => (current + 1) % questions.length);
+    setSyncState("idle");
   }
 
   return (
-    <section className="mx-auto grid max-w-2xl gap-4">
-      <div className="flex items-center justify-between border-2 border-seoul-line bg-white p-3 text-sm font-black">
-        <span>
-          {index + 1} / {questions.length}
+    <section className="mx-auto grid w-full min-w-0 max-w-2xl gap-4">
+      <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 border-2 border-seoul-line bg-white p-3 text-sm font-black">
+        <span className="whitespace-nowrap">
+          {index + 1} / {deck.length}
         </span>
-        <span className="text-center text-seoul-light">
+        <span className="min-w-0 break-words text-center text-seoul-light">
           {question.subject} · {question.chapter}
         </span>
-        <span>중요도 {question.importance}</span>
+        <span className="whitespace-nowrap">중요도 {question.importance}</span>
       </div>
 
       <article className="signal-frame p-4 sm:p-6">
@@ -130,6 +162,12 @@ export function QuizDeck({ questions }: QuizDeckProps) {
           </div>
         ) : null}
 
+        {revealed && !isCorrect && syncState === "saved" && (
+          <Link href="/wrong-note" prefetch={false} className="touch-target mt-4 block border-2 border-seoul-line bg-seoul-light px-4 py-3 text-center font-black text-white">오답노트로 이동</Link>
+        )}
+        {syncState === "error" && <div role="alert" className="mt-4 text-sm font-bold text-red-700">
+          저장하지 못했습니다. <button onClick={() => saveWrongState(pendingWrong.current)} className="underline">다시 저장</button>
+        </div>}
         <div className="mt-5 grid grid-cols-2 gap-3">
           {!revealed ? (
             <button
@@ -144,6 +182,7 @@ export function QuizDeck({ questions }: QuizDeckProps) {
             <>
               <button
                 type="button"
+                disabled={isPending || syncState === "error"}
                 onClick={() => saveWrongState(!isWrong)}
                 className="touch-target border-2 border-seoul-line bg-white px-4 py-3 font-black"
               >
@@ -151,6 +190,7 @@ export function QuizDeck({ questions }: QuizDeckProps) {
               </button>
               <button
                 type="button"
+                disabled={isPending || syncState === "error"}
                 onClick={nextQuestion}
                 className="touch-target border-2 border-seoul-line bg-seoul-ink px-4 py-3 font-black text-white"
               >
