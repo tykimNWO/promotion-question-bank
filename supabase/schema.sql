@@ -5,7 +5,7 @@ create table if not exists public.questions (
   subject text not null default '수신',
   chapter text not null,
   question_type text not null default 'multiple_choice'
-    check (question_type in ('multiple_choice', 'ox')),
+    check (question_type in ('multiple_choice', 'ox', 'short_answer')),
   question_text text not null,
   option_1 text not null,
   option_2 text not null,

@@ -18,7 +18,7 @@ export function parseQuestionFilters(searchParams: Record<string, SearchValue>):
     subject: subject || undefined,
     chapter: chapter || undefined,
     questionType:
-      type === "multiple_choice" || type === "ox" ? (type as QuestionType) : undefined,
+      type === "multiple_choice" || type === "ox" || type === "short_answer" ? (type as QuestionType) : undefined,
     wrongOnly,
     importance:
       importanceValue >= 1 && importanceValue <= 5

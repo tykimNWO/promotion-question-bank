@@ -69,6 +69,7 @@ export function FilterBar({ taxonomy, filters, action = "/questions" }: FilterBa
         <option value="">전체 유형</option>
         <option value="multiple_choice">객관식</option>
         <option value="ox">O/X</option>
+        <option value="short_answer">주관식</option>
       </select>
 
       <select

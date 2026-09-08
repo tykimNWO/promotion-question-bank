@@ -17,7 +17,7 @@ export function QuestionCard({ question, compact }: QuestionCardProps) {
         <span className="bg-seoul-light px-2 py-1 text-white">{question.subject}</span>
         <span className="border border-seoul-line px-2 py-1">{question.chapter}</span>
         <span className="border border-seoul-line px-2 py-1">
-          {question.question_type === "ox" ? "O/X" : "객관식"}
+          {question.question_type === "short_answer" ? "주관식" : question.question_type === "ox" ? "O/X" : "객관식"}
         </span>
         <span className="border border-seoul-line px-2 py-1">중요도 {question.importance}</span>
         {question.is_wrong ? (

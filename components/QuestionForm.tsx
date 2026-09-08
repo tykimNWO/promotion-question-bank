@@ -17,6 +17,7 @@ const importanceOptions = [1, 2, 3, 4, 5] as const;
 export function QuestionForm({ action, question, taxonomy, mode }: QuestionFormProps) {
   const initialType = question?.question_type ?? "multiple_choice";
   const [type, setType] = useState<QuestionType>(initialType);
+  const [shortAnswer, setShortAnswer] = useState(initialType === "short_answer" ? question?.option_1 ?? "" : "");
   const [subject, setSubject] = useState(question?.subject ?? "수신");
   const [chapter, setChapter] = useState(question?.chapter ?? "");
   const [multipleChoiceAnswer, setMultipleChoiceAnswer] = useState<number>(
@@ -94,6 +95,7 @@ export function QuestionForm({ action, question, taxonomy, mode }: QuestionFormP
         >
           <option value="multiple_choice">객관식</option>
           <option value="ox">O/X</option>
+          <option value="short_answer">주관식</option>
         </select>
       </label>
 
@@ -126,17 +128,20 @@ export function QuestionForm({ action, question, taxonomy, mode }: QuestionFormP
             </label>
           ))}
         </div>
-      ) : (
+      ) : type === "ox" ? (
         <div className="grid grid-cols-2 gap-3" aria-label="O/X 선택지 안내">
           <div className="border-2 border-seoul-line bg-white p-4 text-center text-2xl font-black">O</div>
           <div className="border-2 border-seoul-line bg-white p-4 text-center text-2xl font-black">X</div>
         </div>
-      )}
+      ) : null}
 
       <div className="grid gap-4 md:grid-cols-2">
         <label className="grid gap-2">
           <span className="text-xs font-black uppercase tracking-[0.2em]">정답</span>
-          <select
+          {type === "short_answer" ? <>
+            <input name="short_answer" value={shortAnswer} onChange={event => setShortAnswer(event.target.value)} required className="field-control" autoComplete="off" autoCapitalize="none" spellCheck={false} />
+            <span className="text-sm">공백·대소문자를 포함해 정확히 일치해야 정답입니다.</span>
+          </> : <select
             name="answer"
             value={answer}
             onChange={(event) => {
@@ -157,7 +162,7 @@ export function QuestionForm({ action, question, taxonomy, mode }: QuestionFormP
                     {value}번
                   </option>
                 ))}
-          </select>
+          </select>}
         </label>
 
         <label className="grid gap-2">

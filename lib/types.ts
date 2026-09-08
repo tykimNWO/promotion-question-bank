@@ -1,4 +1,4 @@
-export type QuestionType = "multiple_choice" | "ox";
+export type QuestionType = "multiple_choice" | "ox" | "short_answer";
 
 export type Question = {
   id: string;

@@ -18,7 +18,7 @@ function integerInRange(
 }
 
 function questionType(value: FormDataEntryValue | null): QuestionType {
-  if (value === "multiple_choice" || value === "ox") return value;
+  if (value === "multiple_choice" || value === "ox" || value === "short_answer") return value;
   throw new Error("문제 유형 값이 올바르지 않습니다.");
 }
 
@@ -41,6 +41,13 @@ export function questionInputFromFormData(formData: FormData): QuestionInput {
 
   if (missing.length > 0) {
     throw new Error(`${missing.map(([label]) => label).join(", ")} 항목을 입력해주세요.`);
+  }
+
+  if (type === "short_answer") {
+    // Preserve the exact answer, including leading/trailing spaces and case.
+    const answerText = String(formData.get("short_answer") ?? "");
+    if (!answerText.trim()) throw new Error("주관식 정답을 입력해주세요.");
+    return { ...common, option_1: answerText, option_2: "", option_3: "", option_4: "", answer: 1 };
   }
 
   if (type === "ox") {

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { isCorrectAnswer } from "@/lib/answers";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { setQuestionWrong } from "@/lib/actions";
 import type { Question } from "@/lib/types";
@@ -25,6 +26,7 @@ export function QuizDeck({ questions, wrongOnly = false }: QuizDeckProps) {
     setDeck(shuffled);
   }, [initialQuestions]);
   const [index, setIndex] = useState(0);
+  const [typedAnswer, setTypedAnswer] = useState("");
   const [selected, setSelected] = useState<number | null>(null);
   const [revealed, setRevealed] = useState(false);
   const [wrongMap, setWrongMap] = useState(() => new Map(questions.map((q) => [q.id, q.is_wrong])));
@@ -36,7 +38,9 @@ export function QuizDeck({ questions, wrongOnly = false }: QuizDeckProps) {
   const options = useMemo(
     () =>
       question
-        ? question.question_type === "ox"
+        ? question.question_type === "short_answer"
+          ? []
+          : question.question_type === "ox"
           ? [question.option_1, question.option_2]
           : [question.option_1, question.option_2, question.option_3, question.option_4]
         : [],
@@ -56,11 +60,12 @@ export function QuizDeck({ questions, wrongOnly = false }: QuizDeckProps) {
   }
 
   const questionId = question.id;
-  const answer = question.answer;
-  const isCorrect = selected === answer;
+  const isShortAnswer = question.question_type === "short_answer";
+  const hasAnswer = isShortAnswer ? typedAnswer.length > 0 : selected !== null;
+  const isCorrect = isCorrectAnswer(question, selected, typedAnswer);
   const isWrong = wrongMap.get(question.id) ?? false;
   const answerLabel =
-    question.question_type === "ox"
+    isShortAnswer ? question.option_1 : question.question_type === "ox"
       ? question.answer === 1
         ? "O"
         : "X"
@@ -81,9 +86,9 @@ export function QuizDeck({ questions, wrongOnly = false }: QuizDeckProps) {
   }
 
   function revealAnswer() {
-    if (!selected || revealed || isPending) return;
+    if (!hasAnswer || revealed || isPending) return;
     setRevealed(true);
-    saveWrongState(selected !== answer);
+    saveWrongState(!isCorrect);
   }
 
   function nextQuestion() {
@@ -97,6 +102,7 @@ export function QuizDeck({ questions, wrongOnly = false }: QuizDeckProps) {
       setIndex((current) => (current + 1) % deck!.length);
     }
     setSelected(null);
+    setTypedAnswer("");
     setRevealed(false);
     setSyncState("idle");
   }
@@ -121,6 +127,13 @@ export function QuizDeck({ questions, wrongOnly = false }: QuizDeckProps) {
 
         <h1 className="mt-5 text-2xl font-black leading-snug sm:text-3xl">{question.question_text}</h1>
 
+        {isShortAnswer && <label className="mt-6 grid gap-2">
+          <span className="text-sm font-black">주관식 답안</span>
+          <input value={typedAnswer} onChange={event => setTypedAnswer(event.target.value)} disabled={revealed}
+            onKeyDown={event => { if (event.key === "Enter" && !event.nativeEvent.isComposing) { event.preventDefault(); revealAnswer(); } }}
+            className="field-control" placeholder="정답을 입력하세요" autoComplete="off" autoCapitalize="none" spellCheck={false} />
+          <span className="text-xs">공백·대소문자까지 정확히 입력해 주세요.</span>
+        </label>}
         <div className="mt-6 grid gap-3">
           {options.map((option, optionIndex) => {
             const number = optionIndex + 1;
@@ -153,10 +166,10 @@ export function QuizDeck({ questions, wrongOnly = false }: QuizDeckProps) {
 
         {revealed ? (
           <div className="mt-5 border-2 border-seoul-line bg-seoul-smoke p-4">
-            <p className={isCorrect ? "font-black text-green-700" : "font-black text-red-700"}>
+            <p className={isCorrect ? "whitespace-pre-wrap font-black text-green-700" : "whitespace-pre-wrap font-black text-red-700"}>
               {isCorrect
                 ? "정답입니다."
-                : `${question.question_type === "ox" ? (selected === 1 ? "O" : "X") : `${selected}번`}은 오답입니다. 정답은 ${answerLabel}입니다.`}
+                : isShortAnswer ? `오답입니다. 정답은 ${answerLabel}입니다.` : `${question.question_type === "ox" ? (selected === 1 ? "O" : "X") : `${selected}번`}은 오답입니다. 정답은 ${answerLabel}입니다.`}
             </p>
             <p className="mt-3 whitespace-pre-wrap text-sm leading-6">{question.explanation || "해설이 없습니다."}</p>
           </div>
@@ -172,7 +185,7 @@ export function QuizDeck({ questions, wrongOnly = false }: QuizDeckProps) {
           {!revealed ? (
             <button
               type="button"
-              disabled={!selected}
+              disabled={!hasAnswer}
               onClick={revealAnswer}
               className="touch-target col-span-2 border-2 border-seoul-line bg-seoul-light px-4 py-3 font-black text-white disabled:bg-seoul-smoke disabled:text-seoul-line/50"
             >
