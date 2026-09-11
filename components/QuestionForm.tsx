@@ -135,11 +135,11 @@ export function QuestionForm({ action, question, taxonomy, mode }: QuestionFormP
         </div>
       ) : null}
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid items-start gap-4 md:grid-cols-2">
         <label className="grid gap-2">
           <span className="text-xs font-black uppercase tracking-[0.2em]">정답</span>
           {type === "short_answer" ? <>
-            <input name="short_answer" value={shortAnswer} onChange={event => setShortAnswer(event.target.value)} required className="field-control" autoComplete="off" autoCapitalize="none" spellCheck={false} />
+            <input name="short_answer" value={shortAnswer} onChange={event => setShortAnswer(event.target.value)} required className="field-control h-12" autoComplete="off" autoCapitalize="none" spellCheck={false} />
             <span className="text-sm">공백·대소문자를 포함해 정확히 일치해야 정답입니다.</span>
           </> : <select
             name="answer"

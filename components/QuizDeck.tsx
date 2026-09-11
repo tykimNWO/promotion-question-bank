@@ -150,9 +150,13 @@ export function QuizDeck({ questions, wrongOnly = false }: QuizDeckProps) {
                 className={[
                   "touch-target border-2 border-seoul-line p-4 text-left font-bold transition",
                   question.question_type === "ox" ? "text-center text-3xl" : "",
-                  isSelected && !revealed ? "bg-seoul-light text-white shadow-signal" : "bg-white",
-                  showCorrect ? "bg-green-600 text-white" : "",
-                  showWrongSelected ? "bg-red-600 text-white" : ""
+                  showCorrect
+                    ? "bg-green-600 text-white"
+                    : showWrongSelected
+                      ? "bg-red-600 text-white"
+                      : isSelected && !revealed
+                        ? "bg-seoul-light text-white shadow-signal"
+                        : "bg-white text-seoul-ink"
                 ].join(" ")}
               >
                 {question.question_type === "multiple_choice" ? (
